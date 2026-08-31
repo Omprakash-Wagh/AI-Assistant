@@ -26,7 +26,7 @@ pm install Ai-Assistant-using-groq
 ### Option 2: Manual Git Installation
 1. Clone this repository into your Flow Launcher user plugins directory:
    ```powershell
-   git clone https://github.com/Omprakash-Wagh/flow-groq.git "%APPDATA%\FlowLauncher\Plugins\Ai-Assistant-using-groq"
+   git clone https://github.com/Omprakash-Wagh/AI-Assistant.git "%APPDATA%\FlowLauncher\Plugins\Ai-Assistant-using-groq"
    ```
 2. Restart Flow Launcher.
 
@@ -79,4 +79,4 @@ This project is open-source and licensed under the [MIT License](LICENSE).
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [repository issues](https://github.com/Omprakash-Wagh/flow-groq/issues) page.
+Contributions, issues, and feature requests are welcome! Feel free to check the [repository issues](https://github.com/Omprakash-Wagh/AI-Assistant/issues) page.
