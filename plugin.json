@@ -1,10 +1,10 @@
 {
   "ID": "8f9b3a1d-6c2e-48a7-95f0-1c4b8e2a3d7f",
   "ActionKeyword": "ai",
-  "Name": "AI Assistant",
+  "Name": "AI Assistant using Groq",
   "Description": "Ask AI directly from Flow Launcher",
   "Author": "Omprakash-Wagh",
-  "Version": "1.0.3",
+  "Version": "1.0.4",
   "Language": "python",
   "Website": "https://github.com/Omprakash-Wagh/Ai-Assistant",
   "ExecuteFileName": "main.py",
