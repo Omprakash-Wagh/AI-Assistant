@@ -8,7 +8,6 @@ import json
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
 
 from flowlauncher import FlowLauncher, FlowLauncherAPI
-from groq import Groq
 import keyring
 
 class AiPlugin(FlowLauncher):
@@ -22,6 +21,16 @@ class AiPlugin(FlowLauncher):
                 return str(rpc_settings.get("concise_mode", "true")).lower() == "true"
         return True
 
+    @property
+    def action_keyword(self) -> str:
+        req = getattr(self, "rpc_request", {})
+        if isinstance(req, dict):
+            ak = req.get("actionKeyword") or req.get("ActionKeyword")
+            if ak:
+                return str(ak)
+        # Fallback in case Flow Launcher doesn't provide it
+        return "ai"
+
     def query(self, param: str = '') -> list:
         query = param.strip()
         
@@ -32,7 +41,7 @@ class AiPlugin(FlowLauncher):
                 return [
                     {
                         "Title": "API Key Saved Successfully!",
-                        "SubTitle": "Your Groq API Key has been securely stored. You can now use the 'ai' command.",
+                        "SubTitle": f"Your Groq API Key has been securely stored. You can now use the '{self.action_keyword}' command.",
                         "IcoPath": "icon.png"
                     }
                 ]
@@ -62,7 +71,7 @@ class AiPlugin(FlowLauncher):
             return [
                 {
                     "Title": "Type a prompt for your Ai Assistant",
-                    "SubTitle": "Example: 'ai explain quantum computing in one sentence'",
+                    "SubTitle": f"Example: '{self.action_keyword} explain quantum computing in one sentence'",
                     "IcoPath": "icon.png"
                 }
             ]
@@ -87,7 +96,7 @@ class AiPlugin(FlowLauncher):
             return [
                 {
                     "Title": "Type a prompt for your Ai Assistant",
-                    "SubTitle": "Example: 'ai explain quantum computing in one sentence'",
+                    "SubTitle": f"Example: '{self.action_keyword} explain quantum computing in one sentence'",
                     "IcoPath": "icon.png"
                 }
             ]
@@ -119,12 +128,14 @@ class AiPlugin(FlowLauncher):
         except Exception:
             pass
         
-        FlowLauncherAPI.change_query(f"ai > {query}", requery=True)
+        FlowLauncherAPI.change_query(f"{self.action_keyword} > {query}", requery=True)
         return []
 
     def execute_groq_query(self, api_key: str, query: str) -> list:
         try:
-            client = Groq(api_key=api_key)
+            import urllib.request
+            import urllib.error
+            import json
             
             # Check if user enabled Concise Mode in settings
             messages = []
@@ -135,12 +146,28 @@ class AiPlugin(FlowLauncher):
                 })
             messages.append({"role": "user", "content": query})
             
-            completion = client.chat.completions.create(
-                messages=messages,
-                model="groq/compound-mini",
-            )
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            data = json.dumps({
+                "model": "groq/compound-mini",
+                "messages": messages
+            }).encode("utf-8")
             
-            full_response = (completion.choices[0].message.content or "").strip()
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "FlowLauncher-AiAssistant/1.0"
+            }
+            
+            req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+            
+            try:
+                with urllib.request.urlopen(req) as response:
+                    response_body = response.read().decode("utf-8")
+                    result_json = json.loads(response_body)
+                    full_response = (result_json["choices"][0]["message"]["content"] or "").strip()
+            except urllib.error.HTTPError as e:
+                error_body = e.read().decode("utf-8")
+                raise Exception(f"HTTP {e.code}: {error_body}")
             
             # Break down multi-line or long responses into 80-char chunks so Flow Launcher shows the entire text!
             chunks = []
