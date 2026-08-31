@@ -9,101 +9,51 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
 
 from flowlauncher import FlowLauncher, FlowLauncherAPI
 from groq import Groq
+import keyring
 
 class AiPlugin(FlowLauncher):
 
-    # 1. This property dynamically fetches settings saved by Flow Launcher and syncs them to disk
     @property
-    def settings(self) -> dict:
-        merged = {}
-        
-        # Load from official Flow Launcher Settings.json if available
-        fl_settings_dir = os.path.join(os.getenv("APPDATA", ""), "FlowLauncher", "Settings", "Plugins", "Ai Assistant")
-        fl_settings_path = os.path.join(fl_settings_dir, "Settings.json")
-        try:
-            if os.path.exists(fl_settings_path):
-                with open(fl_settings_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    if isinstance(data, dict):
-                        merged.update(data)
-        except Exception:
-            pass
-
-        # Load from local backup config.json inside plugin folder
-        local_config_path = os.path.join(os.path.dirname(__file__), "config.json")
-        try:
-            if os.path.exists(local_config_path):
-                with open(local_config_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    if isinstance(data, dict):
-                        for k, v in data.items():
-                            if k == "api_key":
-                                if not str(merged.get("api_key", "") or "").strip() and str(v or "").strip():
-                                    merged["api_key"] = v
-                            elif k not in merged:
-                                merged[k] = v
-        except Exception:
-            pass
-
-        # Merge from Flow Launcher's in-memory RPC request
+    def concise_mode(self) -> bool:
         req = getattr(self, "rpc_request", {})
         if isinstance(req, dict):
             rpc_settings = req.get("settings", {})
             if isinstance(rpc_settings, dict):
-                for k, v in rpc_settings.items():
-                    if k == "api_key":
-                        if str(v or "").strip():
-                            merged["api_key"] = v
-                    else:
-                        merged[k] = v
-
-        # Persist and fsync settings to disk so they survive device restarts and abrupt shutdowns
-        api_key_val = str(merged.get("api_key", "") or "").strip()
-        if api_key_val:
-            # Sync to local config.json in plugin folder
-            try:
-                save_needed = True
-                if os.path.exists(local_config_path):
-                    with open(local_config_path, "r", encoding="utf-8") as f:
-                        if json.load(f) == merged:
-                            save_needed = False
-                if save_needed:
-                    with open(local_config_path, "w", encoding="utf-8") as f:
-                        json.dump(merged, f, indent=2)
-                        f.flush()
-                        os.fsync(f.fileno())
-            except Exception:
-                pass
-
-            # Sync to official Flow Launcher Settings.json
-            try:
-                if os.path.exists(fl_settings_dir):
-                    save_needed = True
-                    if os.path.exists(fl_settings_path):
-                        with open(fl_settings_path, "r", encoding="utf-8") as f:
-                            if json.load(f) == merged:
-                                save_needed = False
-                    if save_needed:
-                        with open(fl_settings_path, "w", encoding="utf-8") as f:
-                            json.dump(merged, f, indent=2)
-                            f.flush()
-                            os.fsync(f.fileno())
-            except Exception:
-                pass
-
-        return merged
+                return str(rpc_settings.get("concise_mode", "true")).lower() == "true"
+        return True
 
     def query(self, param: str = '') -> list:
         query = param.strip()
-        # 2. Retrieve the API key from the settings UI
-        api_key = str(self.settings.get("api_key", "") or "").strip()
+        
+        # Detect if user is entering a Groq API key
+        if query.startswith("gsk_"):
+            try:
+                keyring.set_password("flow-groq", "api_key", query)
+                return [
+                    {
+                        "Title": "API Key Saved Successfully!",
+                        "SubTitle": "Your Groq API Key has been securely stored. You can now use the 'ai' command.",
+                        "IcoPath": "icon.png"
+                    }
+                ]
+            except Exception as e:
+                return [
+                    {
+                        "Title": "Failed to save API Key",
+                        "SubTitle": str(e),
+                        "IcoPath": "icon.png"
+                    }
+                ]
+
+        # 2. Retrieve the API key from keyring
+        api_key = keyring.get_password("flow-groq", "api_key")
 
         # 3. Guardrail: Tell the user if they forgot to enter their key
         if not api_key:
             return [
                 {
                     "Title": "API Key is missing",
-                    "SubTitle": "Open Flow Launcher Settings > Plugins > Ai Assistant to enter your Groq API Key",
+                    "SubTitle": "Please paste your Groq API Key (gsk_...) right here to save it securely.",
                     "IcoPath": "icon.png"
                 }
             ]
@@ -177,9 +127,8 @@ class AiPlugin(FlowLauncher):
             client = Groq(api_key=api_key)
             
             # Check if user enabled Concise Mode in settings
-            concise_mode = str(self.settings.get("concise_mode", "true")).lower() == "true"
             messages = []
-            if concise_mode:
+            if self.concise_mode:
                 messages.append({
                     "role": "system",
                     "content": "You are a direct, concise AI assistant inside a desktop launcher. Provide clear, short answers without conversational filler or introductions. Use bullet points if listing multiple items."
@@ -188,7 +137,7 @@ class AiPlugin(FlowLauncher):
             
             completion = client.chat.completions.create(
                 messages=messages,
-                model="llama-3.3-70b-versatile",
+                model="groq/compound-mini",
             )
             
             full_response = (completion.choices[0].message.content or "").strip()
@@ -250,9 +199,15 @@ class AiPlugin(FlowLauncher):
                 
             return results
         except Exception as e:
+            import traceback
+            try:
+                with open(os.path.join(os.path.dirname(__file__), "error.log"), "w", encoding="utf-8") as f:
+                    f.write(traceback.format_exc())
+            except:
+                pass
             return [
                 {
-                    "Title": "Error querying Groq API",
+                    "Title": "Error",
                     "SubTitle": str(e),
                     "IcoPath": "icon.png"
                 }

@@ -1,4 +1,4 @@
-# 🤖 AI Assistant for Flow Launcher
+# 🤖 Ai-Assistant-using-groq for Flow Launcher
 
 An ultra-fast, intelligent AI assistant inside [Flow Launcher](https://github.com/Flow-Launcher/Flow.Launcher), powered by **Groq API** and the cutting-edge **Llama 3.3 70B Versatile** model. Ask questions, generate code snippets, and get answers in milliseconds without ever leaving your keyboard or opening a browser!
 
@@ -11,7 +11,7 @@ An ultra-fast, intelligent AI assistant inside [Flow Launcher](https://github.co
 - 🧠 **Concise Mode (Recommended)**: Specially engineered prompt formatting that keeps responses direct, punchy, and structured (using bullet points) so they fit cleanly inside Flow Launcher without visual clutter.
 - 📋 **Smart Multi-Line Chunking**: Automatically breaks down long or multi-line answers into readable 80-character rows. 
 - 🚀 **One-Click Clipboard Copy**: Press **Enter** on any result line (or on the main header) to instantly copy the complete text response to your clipboard.
-- 🔒 **Secure & Persistent Storage**: Your Groq API key is saved securely in Flow Launcher's local plugin settings with atomic disk syncing—ensuring your settings survive system restarts and shutdowns.
+- 🔒 **Secure & Persistent Storage**: Your Groq API key is saved securely in the Windows Credential Manager using Python's `keyring` library, keeping it safe from plain text files.
 
 ---
 
@@ -20,15 +20,15 @@ An ultra-fast, intelligent AI assistant inside [Flow Launcher](https://github.co
 ### Option 1: Via Flow Launcher Plugin Store (Recommended)
 Open Flow Launcher and type:
 ```bash
-pm install Ai Assistant
+pm install Ai-Assistant-using-groq
 ```
 
 ### Option 2: Manual Git Installation
 1. Clone this repository into your Flow Launcher user plugins directory:
    ```powershell
-   git clone https://github.com/Omprakash-Wagh/flow-groq.git "%APPDATA%\FlowLauncher\Plugins\Ai Assistant"
+   git clone https://github.com/Omprakash-Wagh/flow-groq.git "%APPDATA%\FlowLauncher\Plugins\Ai-Assistant-using-groq"
    ```
-2. Restart Flow Launcher or type `reload_plugins` in the launcher.
+2. Restart Flow Launcher.
 
 ---
 
@@ -39,10 +39,9 @@ pm install Ai Assistant
    - Create an account (free tier available) and generate a new API key (`gsk_...`).
 
 2. **Configure the Plugin**:
-   - Open Flow Launcher settings (`Alt + Space` ➔ type `settings` ➔ press Enter).
-   - Navigate to **Plugins** ➔ **Ai Assistant**.
-   - Paste your API key into the **Groq API Key** password box.
-   - Verify that **Concise Mode (Recommended)** is enabled for optimal desktop formatting.
+   - Open Flow Launcher and simply type: `ai gsk_your_api_key_here`
+   - Your key will be securely saved. You can now use the `ai` command normally!
+   - You can also enable **Concise Mode (Recommended)** in the Flow Launcher settings (Plugins ➔ Ai-Assistant-using-groq) for optimal desktop formatting.
 
 ---
 

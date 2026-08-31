@@ -1,10 +1,4 @@
 body:
-  - type: passwordBox
-    attributes:
-      name: api_key
-      label: "Groq API Key:"
-      defaultValue: ""
-      description: "Enter your Groq API Key from console.groq.com/keys"
   - type: checkbox
     attributes:
       name: concise_mode
