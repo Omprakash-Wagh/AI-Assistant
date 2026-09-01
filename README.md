@@ -62,14 +62,7 @@ When a response spans multiple lines, Flow Launcher displays:
 
 ---
 
-## 🛠️ Technology Stack
 
-- **Language**: Python 3
-- **AI SDK**: Official `groq` Python library
-- **Model**: `llama-3.3-70b-versatile`
-- **Integration**: `flowlauncher` API library
-
----
 
 ## 📄 License
 
