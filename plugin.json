@@ -4,7 +4,7 @@
   "Name": "AI Assistant using Groq",
   "Description": "Ask AI directly from Flow Launcher",
   "Author": "Omprakash-Wagh",
-  "Version": "1.0.4",
+  "Version": "1.0.5",
   "Language": "python",
   "Website": "https://github.com/Omprakash-Wagh/Ai-Assistant",
   "ExecuteFileName": "main.py",

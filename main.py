@@ -148,7 +148,7 @@ class AiPlugin(FlowLauncher):
             
             url = "https://api.groq.com/openai/v1/chat/completions"
             data = json.dumps({
-                "model": "groq/compound-mini",
+                "model": "llama-3.1-8b-instant",
                 "messages": messages
             }).encode("utf-8")
             
